@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+python-multipart
+jinja2
+google-search-results
+python-dotenv

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>写真管理 - PhotoTag</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      padding-bottom: 20px;
+    }
+    
+    /* ヘッダー */
+    .header {
+      background: #fff;
+      padding: 15px 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      color: #1877f2;
+      font-weight: 600;
+    }
+    
+    /* アップロードセクション */
+    .upload-section {
+      background: #fff;
+      margin: 15px;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .upload-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .input-group label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #65676b;
+    }
+    
+    .input-group input {
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+    
+    .input-group input:focus {
+      outline: none;
+      border-color: #1877f2;
+    }
+    
+    .upload-btn {
+      background: #1877f2;
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .upload-btn:active {
+      background: #166fe5;
+      transform: scale(0.98);
+    }
+    
+    .upload-btn:disabled {
+      background: #e4e6eb;
+      color: #bcc0c4;
+    }
+    
+    /* リンク結果 */
+    .link-result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e7f3ff;
+      border-radius: 8px;
+      display: none;
+    }
+    
+    .link-box {
+      background: white;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      word-break: break-all;
+      font-size: 14px;
+      border: 1px solid #d0e1f1;
+    }
+    
+    .copy-btn {
+      background: #42b883;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 8px;
+    }
+    
+    /* 写真ギャラリー */
+    .gallery-section {
+      margin: 15px;
+    }
+    
+    .gallery-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding: 0 5px;
+    }
+    
+    .gallery-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1c1e21;
+    }
+    
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+    }
+    
+    .photo-item {
+      position: relative;
+      aspect-ratio: 1;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+    
+    .photo-item:active {
+      transform: scale(0.95);
+    }
+    
+    .photo-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .photo-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+      color: white;
+      padding: 10px;
+      font-size: 12px;
+    }
+    
+    .photo-title {
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    
+    .photo-count {
+      font-size: 11px;
+      opacity: 0.9;
+    }
+    
+    /* モーダル */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 1000;
+    }
+    
+    .modal-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .modal-header {
+      background: rgba(0,0,0,0.5);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-title {
+      color: white;
+      font-size: 18px;
+      font-weight: 500;
+    }
+    
+    .close-modal {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 28px;
+      cursor: pointer;
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-body {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-image {
+      max-width: 100%;
+      max-height: 100%;
+      position: relative;
+    }
+    
+    .modal-image img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    
+    /* 顔マーカー */
+    .face-marker {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      border: 3px solid #42b883;
+      border-radius: 50%;
+      background: rgba(66, 184, 131, 0.2);
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      text-shadow: 0 0 4px rgba(0,0,0,0.5);
+    }
+    
+    .face-marker:active {
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+    
+    /* 顔情報ポップアップ */
+    .face-popup {
+      position: absolute;
+      background: white;
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      min-width: 200px;
+      z-index: 1001;
+      display: none;
+    }
+    
+    .face-name {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #1c1e21;
+    }
+    
+    .face-linkedin {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #0a66c2;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    
+    .face-linkedin svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    /* モーダルフッター */
+    .modal-footer {
+      background: rgba(0,0,0,0.5);
+      padding: 15px 20px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .modal-footer button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    .share-btn {
+      background: #1877f2;
+      color: white;
+    }
+    
+    .admin-btn {
+      background: #f0f2f5;
+      color: #1c1e21;
+    }
+    
+    /* 空状態 */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #65676b;
+    }
+    
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    
+    /* ローディング */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #1877f2;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* レスポンシブ調整 */
+    @media (max-width: 480px) {
+      .photo-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📸 PhotoTag</h1>
+  </div>
+
+  <!-- アップロードセクション -->
+  <div class="upload-section">
+    <form class="upload-form" id="uploadForm">
+      <div class="input-group">
+        <label for="title">写真のタイトル</label>
+        <input type="text" id="title" name="title" placeholder="何を食べたか: Curry" required>
+      </div>
+      
+      <div class="input-group">
+        <label for="image">写真を選択</label>
+        <input type="file" id="image" name="image" accept="image/*" required>
+      </div>
+      
+      <button type="submit" class="upload-btn" id="uploadBtn">
+        アップロード
+      </button>
+    </form>
+    
+    <div class="link-result" id="linkResult"></div>
+  </div>
+
+  <!-- 写真ギャラリー -->
+  <div class="gallery-section">
+    <div class="gallery-header">
+      <h2 class="gallery-title">アップロード済みの写真</h2>
+      <span id="photoCount" style="color: #65676b; font-size: 14px;">
+        {% if images %}{{ images|length }}枚{% endif %}
+      </span>
+    </div>
+    
+    <div class="photo-grid" id="photoGrid">
+      {% if images %}
+        {% for image in images %}
+        <div class="photo-item" onclick="openModal('{{ image.image_id }}', '{{ image.title }}')">
+          <img src="/static/uploads/{{ image.image_id }}.jpg" alt="{{ image.title }}">
+          <div class="photo-info">
+            <div class="photo-title">{{ image.title }}</div>
+            <div class="photo-count">👥 {{ image.face_count }}人登録済み</div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state" style="grid-column: 1/-1;">
+          <div class="empty-icon">📷</div>
+          <p>まだ写真がアップロードされていません</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 画像詳細モーダル -->
+  <div class="modal" id="imageModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle"></h3>
+        <button class="close-modal" onclick="closeModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="modal-image" id="modalImageContainer">
+          <img id="modalImage" src="" alt="">
+          <div id="faceMarkers"></div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="share-btn" id="shareBtn">
+          📤 参加者に共有
+        </button>
+        <button class="admin-btn" id="statsBtn">
+          📊 統計を見る
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 顔情報ポップアップ -->
+  <div class="face-popup" id="facePopup">
+    <div class="face-name" id="faceName"></div>
+    <a class="face-linkedin" id="faceLinkedin" href="" target="_blank">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+      </svg>
+      LinkedIn
+    </a>
+  </div>
+
+  <script>
+    let currentImageId = null;
+    let currentFaces = [];
+    
+    // フォーム送信処理
+    const uploadForm = document.getElementById('uploadForm');
+    const uploadBtn = document.getElementById('uploadBtn');
+    
+    uploadForm.onsubmit = async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(uploadForm);
+      uploadBtn.disabled = true;
+      uploadBtn.innerHTML = '<span class="loading"></span> アップロード中...';
+      
+      try {
+        const res = await fetch('/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        
+        // リンク表示
+        const linkResult = document.getElementById('linkResult');
+        linkResult.style.display = 'block';
+        linkResult.innerHTML = `
+          <h4 style="margin-bottom: 10px;">✅ アップロード完了！</h4>
+          
+          <div style="margin-bottom: 15px;">
+            <strong>参加者用リンク：</strong>
+            <div class="link-box">${location.origin}${data.link}</div>
+            <button class="copy-btn" onclick="copyLink('${location.origin}${data.link}')">
+              📋 リンクをコピー
+            </button>
+          </div>
+        `;
+        
+        // フォームリセット
+        uploadForm.reset();
+        
+        // ページを更新して新しい画像を表示
+        setTimeout(() => {
+          location.reload();
+        }, 2000);
+        
+      } catch (error) {
+        alert('アップロードに失敗しました: ' + error.message);
+      } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = 'アップロード';
+      }
+    };
+    
+    // リンクコピー機能
+    function copyLink(link) {
+      navigator.clipboard.writeText(link).then(() => {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = '✅ コピーしました！';
+        btn.style.background = '#42b883';
+        
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.background = '';
+        }, 2000);
+      });
+    }
+    
+    // モーダルを開く
+    async function openModal(imageId, title) {
+      currentImageId = imageId;
+      const modal = document.getElementById('imageModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalImage = document.getElementById('modalImage');
+      
+      modalTitle.textContent = title;
+      modalImage.src = `/static/uploads/${imageId}.jpg`;
+      modal.style.display = 'block';
+      
+      // 顔情報を取得
+      try {
+        const res = await fetch(`/api/image-details/${imageId}`);
+        const data = await res.json();
+        currentFaces = data.faces || [];
+        
+        // マーカーを配置
+        displayFaceMarkers();
+        
+        // 共有ボタンの設定
+        document.getElementById('shareBtn').onclick = () => {
+          const shareLink = `${location.origin}/photo/${imageId}`;
+          if (navigator.share) {
+            navigator.share({
+              title: `写真: ${title}`,
+              text: 'あなたの顔をタップして登録してください',
+              url: shareLink
+            });
+          } else {
+            copyLink(shareLink);
+          }
+        };
+        
+        // 統計ボタンの設定
+        document.getElementById('statsBtn').onclick = () => {
+          alert(`登録済み: ${currentFaces.length}人\n\n${currentFaces.map((f, i) => `${i+1}. ${f.name}`).join('\n')}`);
+        };
+        
+      } catch (error) {
+        console.error('顔情報の取得に失敗:', error);
+      }
+    }
+    
+    // モーダルを閉じる
+    function closeModal() {
+      document.getElementById('imageModal').style.display = 'none';
+      document.getElementById('facePopup').style.display = 'none';
+      currentImageId = null;
+      currentFaces = [];
+    }
+    
+    // 顔マーカーを表示
+    function displayFaceMarkers() {
+      const container = document.getElementById('faceMarkers');
+      container.innerHTML = '';
+      
+      currentFaces.forEach((face, index) => {
+        const marker = document.createElement('div');
+        marker.className = 'face-marker';
+        marker.style.left = (face.x * 100) + '%';
+        marker.style.top = (face.y * 100) + '%';
+        marker.textContent = index + 1;
+        
+        marker.onclick = (e) => {
+          e.stopPropagation();
+          showFaceInfo(face, e);
+        };
+        
+        container.appendChild(marker);
+      });
+    }
+    
+    // 顔情報を表示
+    function showFaceInfo(face, event) {
+      const popup = document.getElementById('facePopup');
+      const faceName = document.getElementById('faceName');
+      const faceLinkedin = document.getElementById('faceLinkedin');
+      
+      faceName.textContent = face.name;
+      faceLinkedin.href = face.linkedin_url;
+      
+      // ポップアップの位置を設定
+      const rect = event.target.getBoundingClientRect();
+      popup.style.left = rect.left + 'px';
+      popup.style.top = (rect.bottom + 10) + 'px';
+      popup.style.display = 'block';
+      
+      // 画面外にはみ出る場合の調整
+      setTimeout(() => {
+        const popupRect = popup.getBoundingClientRect();
+        if (popupRect.right > window.innerWidth) {
+          popup.style.left = (window.innerWidth - popupRect.width - 10) + 'px';
+        }
+        if (popupRect.bottom > window.innerHeight) {
+          popup.style.top = (rect.top - popupRect.height - 10) + 'px';
+        }
+      }, 0);
+    }
+    
+    // モーダル外クリックで閉じる
+    window.onclick = (e) => {
+      if (e.target.id === 'imageModal') {
+        closeModal();
+      }
+      if (!e.target.closest('.face-marker') && !e.target.closest('.face-popup')) {
+        document.getElementById('facePopup').style.display = 'none';
+      }
+    };
+    
+    // ファイル選択時のプレビュー
+    document.getElementById('image').onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const label = e.target.previousElementSibling;
+        label.textContent = `選択済み: ${file.name}`;
+      }
+    };
+  </script>
+</body>
+</html>

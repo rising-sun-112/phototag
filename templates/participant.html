@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>写真に参加者登録</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #000;
+      color: #fff;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* ヘッダー */
+    .header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+      padding: 20px;
+      z-index: 10;
+    }
+    
+    .instruction {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 500;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    
+    .sub-instruction {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 5px;
+      opacity: 0.8;
+    }
+    
+    /* 画像コンテナ */
+    .image-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    
+    #photo {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      display: block;
+      cursor: pointer;
+    }
+    
+    /* タップエフェクト */
+    .tap-effect {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border: 3px solid #1877f2;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: tapPulse 0.6s ease-out;
+      background: rgba(24, 119, 242, 0.1);
+    }
+    
+    @keyframes tapPulse {
+      0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+      }
+    }
+    
+    /* ボトムシート */
+    .bottom-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      color: #000;
+      border-radius: 20px 20px 0 0;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+      max-height: 80vh;
+      overflow: hidden;
+    }
+    
+    .bottom-sheet.active {
+      transform: translateY(0);
+    }
+    
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: #ddd;
+      border-radius: 2px;
+      margin: 12px auto;
+    }
+    
+    .sheet-content {
+      padding: 0 20px 30px;
+      overflow-y: auto;
+      max-height: calc(80vh - 40px);
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .sheet-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    /* 入力フォーム */
+    .input-group {
+      margin-bottom: 20px;
+    }
+    
+    .input-field {
+      width: 100%;
+      padding: 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 16px;
+      transition: all 0.2s;
+      background: #f8f8f8;
+    }
+    
+    .input-field:focus {
+      outline: none;
+      border-color: #1877f2;
+      background: #fff;
+    }
+    
+    .input-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+      display: block;
+    }
+    
+    /* ボタン */
+    .primary-btn {
+      width: 100%;
+      padding: 16px;
+      background: #1877f2;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .primary-btn:active {
+      transform: scale(0.98);
+      background: #166fe5;
+    }
+    
+    .primary-btn:disabled {
+      background: #e0e0e0;
+      color: #999;
+    }
+    
+    .secondary-btn {
+      width: 100%;
+      padding: 14px;
+      background: #f0f2f5;
+      color: #1c1e21;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    
+    /* LinkedIn結果 */
+    .profile-list {
+      margin-top: 20px;
+    }
+    
+    .profile-item {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+    
+    .profile-item:active {
+      background: #e9ecef;
+      transform: scale(0.98);
+    }
+    
+    .profile-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      margin-right: 16px;
+      background: #e0e0e0;
+      object-fit: cover;
+    }
+    
+    .profile-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .profile-name {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .profile-desc {
+      font-size: 14px;
+      color: #666;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    /* ローディング */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      display: none;
+    }
+    
+    .loading-overlay.active {
+      display: flex;
+    }
+    
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #1877f2;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      color: white;
+      margin-top: 16px;
+      font-size: 16px;
+    }
+    
+    /* エラーメッセージ */
+    .error-message {
+      background: #fee;
+      color: #c33;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      display: none;
+    }
+    
+    /* 選択確認マーク */
+    .selection-marker {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border: 4px solid #42b883;
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      animation: markerPulse 2s infinite;
+    }
+    
+    @keyframes markerPulse {
+      0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 0.7;
+      }
+    }
+    
+    /* 振動フィードバック用 */
+    .vibrate {
+      animation: vibrate 0.1s linear;
+    }
+    
+    @keyframes vibrate {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-2px); }
+      75% { transform: translateX(2px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="instruction">あなたの顔をタップしてください</div>
+    <div class="sub-instruction">写真を拡大・移動できます</div>
+  </div>
+
+  <div class="image-container" id="imageContainer">
+    <img id="photo" src="/static/uploads/{{ image_id }}.jpg" />
+  </div>
+
+  <!-- ボトムシート: 名前入力 -->
+  <div class="bottom-sheet" id="nameSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-content">
+      <h3 class="sheet-title">お名前を入力してください</h3>
+      
+      <div class="error-message" id="errorMessage"></div>
+      
+      <div class="input-group">
+        <label class="input-label" for="firstname">名（First Name）</label>
+        <input type="text" id="firstname" class="input-field" placeholder="Asahi" autocomplete="given-name">
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label" for="lastname">姓（Last Name）</label>
+        <input type="text" id="lastname" class="input-field" placeholder="Kato" autocomplete="family-name">
+      </div>
+      
+      <button class="primary-btn" onclick="searchLinkedIn()">
+        LinkedInで検索
+      </button>
+    </div>
+  </div>
+
+  <!-- ボトムシート: LinkedIn選択 -->
+  <div class="bottom-sheet" id="linkedinSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-content">
+      <h3 class="sheet-title">プロフィールを選択</h3>
+      
+      <div class="profile-list" id="profileList"></div>
+      
+      <button class="secondary-btn" onclick="backToName()">
+        名前を変更
+      </button>
+    </div>
+  </div>
+
+  <!-- ローディング -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div style="text-align: center;">
+      <div class="spinner"></div>
+      <div class="loading-text" id="loadingText">検索中...</div>
+    </div>
+  </div>
+
+  <script>
+    let clickX, clickY;
+    const imageId = "{{ image_id }}";
+    let selectionMarker = null;
+    let pinchScale = 1;
+    let pinchBaseDistance = 0;
+    
+    // 画像タップ処理
+    document.getElementById('photo').onclick = (e) => {
+      const img = e.target;
+      const rect = img.getBoundingClientRect();
+      clickX = ((e.clientX - rect.left) / rect.width).toFixed(4);
+      clickY = ((e.clientY - rect.top) / rect.height).toFixed(4);
+      
+      // タップエフェクト
+      const effect = document.createElement('div');
+      effect.className = 'tap-effect';
+      effect.style.left = (e.clientX - rect.left) + 'px';
+      effect.style.top = (e.clientY - rect.top) + 'px';
+      img.parentElement.appendChild(effect);
+      
+      // 振動フィードバック（対応デバイスのみ）
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+      
+      // 選択マーカーを表示
+      if (selectionMarker) {
+        selectionMarker.remove();
+      }
+      selectionMarker = document.createElement('div');
+      selectionMarker.className = 'selection-marker';
+      selectionMarker.style.left = (clickX * 100) + '%';
+      selectionMarker.style.top = (clickY * 100) + '%';
+      img.parentElement.appendChild(selectionMarker);
+      
+      // エフェクト削除
+      setTimeout(() => effect.remove(), 600);
+      
+      // ボトムシートを表示
+      showNameSheet();
+    };
+    
+    // ボトムシート表示
+    function showNameSheet() {
+      closeAllSheets();
+      document.getElementById('nameSheet').classList.add('active');
+      document.getElementById('firstname').focus();
+    }
+    
+    function showLinkedInSheet() {
+      closeAllSheets();
+      document.getElementById('linkedinSheet').classList.add('active');
+    }
+    
+    function closeAllSheets() {
+      document.querySelectorAll('.bottom-sheet').forEach(sheet => {
+        sheet.classList.remove('active');
+      });
+    }
+    
+    // LinkedIn検索
+    async function searchLinkedIn() {
+      const firstname = document.getElementById('firstname').value.trim();
+      const lastname = document.getElementById('lastname').value.trim();
+      const errorMsg = document.getElementById('errorMessage');
+      
+      // バリデーション
+      if (!firstname || !lastname) {
+        errorMsg.textContent = '名前と姓の両方を入力してください';
+        errorMsg.style.display = 'block';
+        document.querySelector('.vibrate').classList.add('vibrate');
+        setTimeout(() => {
+          document.querySelector('.vibrate').classList.remove('vibrate');
+        }, 100);
+        return;
+      }
+      
+      errorMsg.style.display = 'none';
+      showLoading('LinkedInで検索中...');
+      
+      try {
+        const res = await fetch('/search_linkedin', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            image_id: imageId,
+            firstname,
+            lastname,
+            x: clickX,
+            y: clickY
+          })
+        });
+        
+        const results = await res.json();
+        hideLoading();
+        
+        // 結果を表示
+        const profileList = document.getElementById('profileList');
+        
+        if (results.length === 0) {
+          profileList.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: #666;">
+              <div style="font-size: 48px; margin-bottom: 16px;">😕</div>
+              <p>プロフィールが見つかりませんでした</p>
+              <p style="font-size: 14px; margin-top: 8px;">名前を確認してもう一度お試しください</p>
+            </div>
+          `;
+        } else {
+          profileList.innerHTML = results.map(profile => `
+            <div class="profile-item" onclick="selectProfile('${profile.name.replace(/'/g, "\\'")}', '${profile.url}')">
+              <img class="profile-avatar" 
+                   src="${profile.thumbnail || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"%3E%3Ccircle cx="24" cy="24" r="24" fill="%23e0e0e0"/%3E%3Cpath d="M24 24c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6zm0 3c4 0 12 2 12 6v3H12v-3c0-4 8-6 12-6z" fill="%23999"/%3E%3C/svg%3E'}" 
+                   alt="${profile.name}">
+              <div class="profile-info">
+                <div class="profile-name">${profile.name}</div>
+                <div class="profile-desc">${profile.snippet || 'LinkedIn メンバー'}</div>
+              </div>
+            </div>
+          `).join('');
+        }
+        
+        showLinkedInSheet();
+        
+      } catch (error) {
+        hideLoading();
+        errorMsg.textContent = 'エラーが発生しました。もう一度お試しください。';
+        errorMsg.style.display = 'block';
+      }
+    }
+    
+    // プロフィール選択
+    async function selectProfile(name, url) {
+      showLoading('登録中...');
+      
+      try {
+        await fetch('/finalize', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            image_id: imageId,
+            name,
+            linkedin_url: url,
+            x: clickX,
+            y: clickY
+          })
+        });
+        
+        // 成功時の振動
+        if (navigator.vibrate) {
+          navigator.vibrate([50, 50, 50]);
+        }
+        
+        // thanks画面へ遷移
+        location.href = `/thanks?image_id=${imageId}`;
+        
+      } catch (error) {
+        hideLoading();
+        alert('登録に失敗しました。もう一度お試しください。');
+      }
+    }
+    
+    // 名前入力に戻る
+    function backToName() {
+      showNameSheet();
+    }
+    
+    // ローディング表示
+    function showLoading(text = 'Loading...') {
+      document.getElementById('loadingText').textContent = text;
+      document.getElementById('loadingOverlay').classList.add('active');
+    }
+    
+    function hideLoading() {
+      document.getElementById('loadingOverlay').classList.remove('active');
+    }
+    
+    // Enterキーでの送信
+    document.getElementById('lastname').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        searchLinkedIn();
+      }
+    });
+    
+    // ボトムシート外タップで閉じる
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.bottom-sheet') && !e.target.closest('#photo')) {
+        closeAllSheets();
+      }
+    });
+    
+    // ピンチズーム対応（実験的）
+    let touches = [];
+    
+    document.addEventListener('touchstart', (e) => {
+      touches = Array.from(e.touches);
+    });
+    
+    document.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2 && touches.length === 2) {
+        e.preventDefault();
+        
+        const distance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        
+        if (pinchBaseDistance === 0) {
+          pinchBaseDistance = distance;
+        }
+        
+        const scale = distance / pinchBaseDistance;
+        document.getElementById('photo').style.transform = `scale(${scale})`;
+      }
+    });
+    
+    document.addEventListener('touchend', () => {
+      pinchBaseDistance = 0;
+      document.getElementById('photo').style.transform = '';
+    });
+  </script>
+</body>
+</html>

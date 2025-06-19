@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>登録完了</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    /* メインカード */
+    .success-card {
+      background: white;
+      border-radius: 24px;
+      padding: 40px 30px;
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      animation: slideUp 0.5s ease-out;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* 成功アイコン */
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #42b883 0%, #35947d 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      animation: iconPop 0.6s ease-out 0.3s both;
+    }
+    
+    @keyframes iconPop {
+      0% {
+        transform: scale(0);
+      }
+      80% {
+        transform: scale(1.1);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+    
+    .success-icon svg {
+      width: 40px;
+      height: 40px;
+      stroke: white;
+      stroke-width: 3;
+      fill: none;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+      animation: checkmark 0.8s ease-out 0.6s forwards;
+    }
+    
+    @keyframes checkmark {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+    
+    /* テキスト */
+    .success-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1c1e21;
+      margin-bottom: 12px;
+    }
+    
+    .success-message {
+      font-size: 16px;
+      color: #65676b;
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+    
+    /* 写真プレビュー */
+    .photo-preview {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #f0f2f5;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    
+    .photo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .photo-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+      padding: 16px;
+      color: white;
+    }
+    
+    .photo-title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    /* アクションボタン */
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .download-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .download-btn:active {
+      transform: scale(0.98);
+    }
+    
+    .download-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .share-btn {
+      background: #f0f2f5;
+      color: #1c1e21;
+      border: none;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+    
+    .share-btn:active {
+      background: #e4e6eb;
+      transform: scale(0.98);
+    }
+    
+    /* ホームリンク */
+    .home-link {
+      margin-top: 24px;
+      color: #65676b;
+      text-decoration: none;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .home-link:active {
+      color: #1c1e21;
+    }
+    
+    /* ヒントボックス */
+    .hint-box {
+      background: #e7f3ff;
+      border: 1px solid #cce4ff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #004182;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    
+    .hint-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+    
+    /* ローディング状態 */
+    .loading-state {
+      display: none;
+      color: #65676b;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+    
+    .loading-state.active {
+      display: block;
+    }
+    
+    /* 成功トースト */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #333;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 50px;
+      font-size: 14px;
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 1000;
+    }
+    
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    
+    /* モバイル最適化 */
+    @media (max-width: 380px) {
+      .success-card {
+        padding: 30px 20px;
+      }
+      
+      .success-title {
+        font-size: 22px;
+      }
+      
+      .success-message {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="success-card">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    
+    <h1 class="success-title">登録が完了しました！</h1>
+    <p class="success-message">
+      あなたの情報が正常に保存されました。<br>
+      写真を保存してください。
+    </p>
+    
+    {% if image_id %}
+    <div class="photo-preview">
+      <img src="/static/uploads/{{ image_id }}.jpg" alt="集合写真">
+      <div class="photo-overlay">
+        <div class="photo-title">📸 集合写真</div>
+      </div>
+    </div>
+    
+    <div class="action-buttons">
+      <button class="download-btn" onclick="downloadPhoto()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        写真を保存
+      </button>
+      
+    
+    <div class="loading-state" id="loadingState">
+      写真を準備中...
+    </div>
+    
+    <div class="hint-box">
+      <span class="hint-icon">💡</span>
+      <div>
+        <strong>保存のヒント：</strong><br>
+        iPhoneでは「写真に保存」、Androidでは「ダウンロード」を選択してください。
+      </div>
+    </div>
+    
+    {% else %}
+    <div style="padding: 40px 20px; background: #fee; border-radius: 12px; color: #c33;">
+      <p>⚠️ 画像が見つかりません</p>
+    </div>
+    {% endif %}
+    
+  
+  <!-- トースト通知 -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const imageId = "{{ image_id }}";
+    
+    // 写真ダウンロード処理
+    async function downloadPhoto() {
+      const loadingState = document.getElementById('loadingState');
+      const downloadBtn = document.querySelector('.download-btn');
+      
+      // iOS/Androidの判定
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isAndroid = /Android/.test(navigator.userAgent);
+      
+      if (isIOS || isAndroid) {
+        // モバイルデバイスの場合
+        loadingState.classList.add('active');
+        downloadBtn.disabled = true;
+        
+        try {
+          // 画像を新しいタブで開く
+          const imageUrl = `/static/uploads/${imageId}.jpg`;
+          
+          if (isIOS) {
+            // iOS: 画像を直接開いて長押し保存を促す
+            window.open(imageUrl, '_blank');
+            
+            setTimeout(() => {
+              showToast('画像を長押しして「"写真"に保存」を選択してください');
+              loadingState.classList.remove('active');
+              downloadBtn.disabled = false;
+            }, 1000);
+            
+          } else if (isAndroid) {
+            // Android: ダウンロードリンクとして処理
+            const a = document.createElement('a');
+            a.href = `/download/${imageId}`;
+            a.download = `photo_${imageId}.jpg`;
+            a.click();
+            
+            showToast('ダウンロードフォルダを確認してください');
+            loadingState.classList.remove('active');
+            downloadBtn.disabled = false;
+          }
+          
+        } catch (error) {
+          showToast('エラーが発生しました');
+          loadingState.classList.remove('active');
+          downloadBtn.disabled = false;
+        }
+        
+      } else {
+        // デスクトップの場合
+        window.location.href = `/download/${imageId}`;
+        showToast('ダウンロードが開始されました');
+      }
+      
+      // 振動フィードバック
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    }
+    
+    // 写真共有処理
+    async function sharePhoto() {
+      const imageUrl = `${location.origin}/static/uploads/${imageId}.jpg`;
+      
+      if (navigator.share) {
+        // Web Share API対応デバイス
+        try {
+          // 画像をBlobとして取得
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+          const file = new File([blob], `photo_${imageId}.jpg`, { type: 'image/jpeg' });
+          
+          await navigator.share({
+            title: '集合写真',
+            text: '集合写真を共有します',
+            files: [file]
+          });
+          
+          showToast('共有しました');
+          
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            // 共有がキャンセルされた場合以外
+            fallbackShare();
+          }
+        }
+      } else {
+        // Web Share API非対応
+        fallbackShare();
+      }
+    }
+    
+    // フォールバック共有（URLコピー）
+    function fallbackShare() {
+      const imageUrl = `${location.origin}/static/uploads/${imageId}.jpg`;
+      
+      navigator.clipboard.writeText(imageUrl).then(() => {
+        showToast('画像URLをコピーしました');
+      }).catch(() => {
+        showToast('共有できませんでした');
+      });
+    }
+    
+    // トースト表示
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+    
+    // ページ読み込み時のアニメーション
+    window.addEventListener('load', () => {
+      // 成功の振動
+      if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+      }
+    });
+    
+    // PWA用の設定
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
